@@ -68,7 +68,9 @@ public class TechnicianInventoryCommandServiceImpl implements TechnicianInventor
 
         ComponentStock stock = stockOpt.get();
         stock.updateQuantity(command.newQuantity());
-        stock.updateAlertThreshold(command.newAlertThreshold());
+        if (command.newAlertThreshold() != null) {
+            stock.updateAlertThreshold(command.newAlertThreshold());
+        }
 
         technicianInventoryRepository.save(inventory);
         return Optional.of(inventory);

@@ -58,10 +58,12 @@ public class TechnicianInventory extends AuditableAbstractAggregateRootNoId<Tech
 
         ComponentStock stock = stockToUpdate.get();
         stock.updateQuantity(command.newQuantity());
-        stock.updateAlertThreshold(command.newAlertThreshold());
+        if (command.newAlertThreshold() != null) {
+            stock.updateAlertThreshold(command.newAlertThreshold());
+        }
         stock.updateLastUpdated(new Date());
 
-        return false;
+        return true;
     }
 
     public boolean removeStockItem(Long componentId) {
