@@ -7,13 +7,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-
-@SpringBootTest
 class ElectrolinkPlatformApplicationTests {
 
 	@Test
 	void contextLoads() {
-		SuiteResult result = Runner.path("classpath:com/hampcoders/electrolink/sdp")
+		SuiteResult result = Runner.path("classpath:com/hampcoders/electrolink")
 				.outputHtmlReport(true)
 				.parallel(5);
 
