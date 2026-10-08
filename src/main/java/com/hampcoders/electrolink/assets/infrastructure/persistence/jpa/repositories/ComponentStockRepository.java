@@ -13,8 +13,8 @@ import java.util.UUID;
 @Repository
 public interface ComponentStockRepository extends JpaRepository<ComponentStock, UUID> {
 
-    @Query("SELECT cs FROM ComponentStock cs WHERE cs.technicianInventory.id = :technicianInventoryId AND cs.component.componentUid = :componentUid")
-    Optional<ComponentStock> findByTechnicianInventoryIdAndComponentUid(@Param("technicianInventoryId") Long technicianInventoryId, @Param("componentUid") Long componentUid);
+    @Query("SELECT cs FROM ComponentStock cs WHERE cs.technicianInventory.technicianId = :technicianId AND cs.component.componentUid = :componentUid")
+    Optional<ComponentStock> findByTechnicianIdAndComponentUid(@Param("technicianId") Long technicianId, @Param("componentUid") Long componentUid);
 
     List<ComponentStock> findAllByTechnicianInventory_Id(UUID technicianInventoryId);
 

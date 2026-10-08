@@ -94,7 +94,7 @@ class TechnicianInventoryQueryServiceImplTest {
     void getStockItemDetails_whenExists_returnsStock() {
         // Arrange
         var stock = new ComponentStock(new TechnicianInventory(1L), null, 8, 2, new Date());
-        when(componentStockRepository.findByTechnicianInventoryIdAndComponentUid(1L, 20L)).thenReturn(Optional.of(stock));
+        when(componentStockRepository.findByTechnicianIdAndComponentUid(1L, 20L)).thenReturn(Optional.of(stock));
 
         // Act
         var result = service.handle(new GetStockItemDetailsQuery(new TechnicianId(1L), new ComponentId(20L)));
@@ -107,7 +107,7 @@ class TechnicianInventoryQueryServiceImplTest {
     @DisplayName("StockItemDetails: devuelve vacío si el técnico no tiene ese componente")
     void getStockItemDetails_whenMissing_returnsEmpty() {
         // Arrange
-        when(componentStockRepository.findByTechnicianInventoryIdAndComponentUid(1L, 20L)).thenReturn(Optional.empty());
+        when(componentStockRepository.findByTechnicianIdAndComponentUid(1L, 20L)).thenReturn(Optional.empty());
 
         // Act
         var result = service.handle(new GetStockItemDetailsQuery(new TechnicianId(1L), new ComponentId(20L)));

@@ -56,6 +56,14 @@ public class ComponentStock extends AuditableModel {
         this.quantityAvailable = newQuantity;
     }
 
+    public void increaseQuantity(int amount) {
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Quantity to add must be greater than zero.");
+        }
+        this.quantityAvailable += amount;
+        this.lastUpdated = new Date();
+    }
+
     public void updateAlertThreshold(int newAlertThreshold) {
         if (newAlertThreshold < 0) {
             throw new IllegalArgumentException("Alert threshold cannot be negative.");

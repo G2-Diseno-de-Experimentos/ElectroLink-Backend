@@ -162,6 +162,24 @@ class ComponentEntitiesTest {
     }
 
     @Test
+    @DisplayName("TechnicianInventory: addToStock incrementa la cantidad si el componente ya existe")
+    void technicianInventory_addToStock_whenComponentAlreadyInStock_increasesQuantity() {
+        // Arrange
+        var inventory = new TechnicianInventory(1L);
+        var component = componentWithUid(20L);
+        inventory.addToStock(component, 10, 3);
+
+        // Act
+        inventory.addToStock(component, 5, 4);
+
+        // Assert
+        assertThat(inventory.getComponentStocks()).hasSize(1);
+        var stock = inventory.getComponentStocks().get(0);
+        assertThat(stock.getQuantityAvailable()).isEqualTo(15);
+        assertThat(stock.getAlertThreshold()).isEqualTo(4);
+    }
+
+    @Test
     @DisplayName("TechnicianInventory: updateStockItem actualiza el stock y devuelve true")
     void technicianInventory_updateStockItem_whenPresent_updatesAndReturnsTrue() {
         // Arrange
