@@ -29,6 +29,13 @@ public class InventoryStockList {
     }
 
     public void addItem(TechnicianInventory inventory, Component component, int quantity, int threshold) {
+        for (ComponentStock item : this.items) {
+            if (item.getComponent() != null && item.getComponent().getComponentUid().equals(component.getComponentUid())) {
+                item.increaseQuantity(quantity);
+                item.updateAlertThreshold(threshold);
+                return;
+            }
+        }
         this.items.add(new ComponentStock(inventory, component, quantity, threshold, new Date()));
     }
 
