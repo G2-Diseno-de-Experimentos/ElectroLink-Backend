@@ -7,8 +7,9 @@ pipeline {
   }
 
   environment {
-    // Runs the whole Karate suite against a deployed backend, so it is not part of the unit test stage
-    TEST_FILTER = '!ElectrolinkPlatformApplicationTests'
+    // Tests that need a running backend are not part of the unit test stage:
+    // the whole Karate suite runner and the *IT integration classes
+    TEST_FILTER = '!ElectrolinkPlatformApplicationTests,!*IT'
   }
 
   stages {
