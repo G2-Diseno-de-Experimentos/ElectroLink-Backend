@@ -12,28 +12,36 @@ import java.util.Base64;
 import java.util.Map;
 import java.util.UUID;
 
-/** Real HTTP client shared by Karate and Cucumber. Never prints credentials or JWTs. */
+/** Real HTTP client for Karate fixtures. Never prints credentials or JWTs. */
 public final class AssetsApiSupport {
     private final ObjectMapper mapper = new ObjectMapper();
     private final HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
     private final String baseUrl;
 
     public AssetsApiSupport() {
-        baseUrl = System.getProperty("assets.baseUrl", System.getenv().getOrDefault("ASSETS_BASE_URL", "http://localhost:8091")).replaceAll("/+$", "");
+        this("assets", "ASSETS");
+    }
+
+    public AssetsApiSupport(String namespace, String environmentPrefix) {
+        baseUrl = System.getProperty(namespace + ".baseUrl", System.getenv().getOrDefault(environmentPrefix + "_BASE_URL", "http://localhost:8091")).replaceAll("/+$", "");
         var uri = URI.create(baseUrl);
-        if (!java.util.Set.of("localhost", "127.0.0.1", "::1", "[::1]").contains(uri.getHost()) && !Boolean.getBoolean("assets.allowRemoteWrites")) {
-            throw new IllegalArgumentException("Use un backend local de pruebas. Para autorizar escrituras remotas: -Dassets.allowRemoteWrites=true");
+        if (!java.util.Set.of("localhost", "127.0.0.1", "::1", "[::1]").contains(uri.getHost()) && !Boolean.getBoolean(namespace + ".allowRemoteWrites")) {
+            throw new IllegalArgumentException("Use un backend local de pruebas. Para autorizar escrituras remotas: -D" + namespace + ".allowRemoteWrites=true");
         }
     }
     public String baseUrl() { return baseUrl; }
     public record Session(String ownerId, String token) { }
 
     public Session authenticate() throws Exception {
+        return authenticate("ROLE_HOMEOWNER");
+    }
+
+    public Session authenticate(String role) throws Exception {
         var username = "assets-" + UUID.randomUUID().toString().substring(0, 12) + "@test.local";
         var bytes = new byte[24];
         new SecureRandom().nextBytes(bytes);
         var password = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-        var signup = request("POST", "/api/v1/authentication/sign-up", Map.of("username", username, "password", password, "roles", java.util.List.of("ROLE_HOMEOWNER")), null);
+        var signup = request("POST", "/api/v1/authentication/sign-up", Map.of("username", username, "password", password, "roles", java.util.List.of(role)), null);
         requireStatus(signup, 201, "Registro del usuario de prueba");
         var signin = request("POST", "/api/v1/authentication/sign-in", Map.of("username", username, "password", password), null);
         requireStatus(signin, 200, "Autenticación del usuario de prueba");
@@ -48,7 +56,7 @@ public final class AssetsApiSupport {
         var publisher = body == null ? HttpRequest.BodyPublishers.noBody() : HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(body));
         if (body != null) builder.header("Content-Type", "application/json");
         try { return client.send(builder.method(method, publisher).build(), HttpResponse.BodyHandlers.ofString()); }
-        catch (java.io.IOException unavailable) { throw new IllegalStateException("No se pudo conectar al backend real en " + baseUrl + ". Inícielo antes de ejecutar Karate/Cucumber.", unavailable); }
+        catch (java.io.IOException unavailable) { throw new IllegalStateException("No se pudo conectar al backend real en " + baseUrl + ". Inícielo antes de ejecutar Karate.", unavailable); }
     }
     public JsonNode json(HttpResponse<String> response) throws Exception { return mapper.readTree(response.body()); }
     public static void requireStatus(HttpResponse<String> response, int expected, String action) {
