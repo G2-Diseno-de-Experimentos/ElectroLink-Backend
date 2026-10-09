@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="ElectroLink - Assets Local (PostgreSQL real)" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <module name="service-platform-parent" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.hampcoders.electrolink.ElectrolinkPlatformApplication" />
+    <option name="PROGRAM_PARAMETERS" value="--spring.config.additional-location=file:./target/assets-local/application.properties" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

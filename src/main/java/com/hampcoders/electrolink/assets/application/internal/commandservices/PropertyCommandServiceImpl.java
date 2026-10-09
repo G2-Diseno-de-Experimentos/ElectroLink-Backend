@@ -38,8 +38,7 @@ public class PropertyCommandServiceImpl implements PropertyCommandService {
     @Override
     public Boolean handle(DeletePropertyCommand command) {
         return propertyRepository.findById(command.propertyId()).map(property -> {
-            //property.deactivate();
-            propertyRepository.save(property);
+            propertyRepository.delete(property);
             return true;
         }).orElse(false);
     }

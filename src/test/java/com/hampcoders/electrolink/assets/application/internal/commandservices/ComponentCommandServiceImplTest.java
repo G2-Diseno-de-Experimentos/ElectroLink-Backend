@@ -44,8 +44,7 @@ class ComponentCommandServiceImplTest {
         // Arrange
         var command = new CreateComponentCommand(UUID.randomUUID(), "Breaker 20A", "Interruptor", 1L, true);
         when(componentRepository.existsByName("Breaker 20A")).thenReturn(false);
-        when(componentRepository.save(any(Component.class)))
-                .thenReturn(componentWithUid(10L, "Breaker 20A", "Interruptor"));
+        when(componentRepository.save(any(Component.class))).thenReturn(componentWithUid(10L, "Breaker 20A", "Interruptor"));
 
         // Act
         var result = service.handle(command);
@@ -63,9 +62,7 @@ class ComponentCommandServiceImplTest {
         when(componentRepository.existsByName("Breaker 20A")).thenReturn(true);
 
         // Act + Assert
-        assertThatThrownBy(() -> service.handle(command))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Component with the same name already exists");
+        assertThatThrownBy(() -> service.handle(command)).isInstanceOf(IllegalStateException.class).hasMessage("Component with the same name already exists");
         verify(componentRepository, never()).save(any());
     }
 

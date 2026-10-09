@@ -84,9 +84,7 @@ class TechnicianInventoryCommandServiceImplTest {
         when(technicianInventoryRepository.existsByTechnicianId(TECHNICIAN_ID)).thenReturn(true);
 
         // Act + Assert
-        assertThatThrownBy(() -> service.handle(command))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Technician inventory already exists for this technician ID");
+        assertThatThrownBy(() -> service.handle(command)).isInstanceOf(IllegalStateException.class).hasMessage("Technician inventory already exists for this technician ID");
         verify(technicianInventoryRepository, never()).save(any());
     }
 
@@ -121,9 +119,7 @@ class TechnicianInventoryCommandServiceImplTest {
         when(technicianInventoryRepository.findByTechnicianId(TECHNICIAN_ID)).thenReturn(Optional.empty());
 
         // Act + Assert
-        assertThatThrownBy(() -> service.handle(new AddComponentStockCommand(TECHNICIAN_ID, COMPONENT_ID, 10, 3)))
-                .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("TechnicianInventory not found");
+        assertThatThrownBy(() -> service.handle(new AddComponentStockCommand(TECHNICIAN_ID, COMPONENT_ID, 10, 3))).isInstanceOf(EntityNotFoundException.class).hasMessageContaining("TechnicianInventory not found");
         verify(technicianInventoryRepository, never()).save(any());
     }
 
@@ -131,14 +127,11 @@ class TechnicianInventoryCommandServiceImplTest {
     @DisplayName("AddStock: lanza EntityNotFoundException si el componente no existe")
     void addStock_whenComponentMissing_throwsEntityNotFoundException() {
         // Arrange
-        when(technicianInventoryRepository.findByTechnicianId(TECHNICIAN_ID))
-                .thenReturn(Optional.of(new TechnicianInventory(TECHNICIAN_ID)));
+        when(technicianInventoryRepository.findByTechnicianId(TECHNICIAN_ID)).thenReturn(Optional.of(new TechnicianInventory(TECHNICIAN_ID)));
         when(componentRepository.findByComponentUid(COMPONENT_ID)).thenReturn(Optional.empty());
 
         // Act + Assert
-        assertThatThrownBy(() -> service.handle(new AddComponentStockCommand(TECHNICIAN_ID, COMPONENT_ID, 10, 3)))
-                .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("Component not found");
+        assertThatThrownBy(() -> service.handle(new AddComponentStockCommand(TECHNICIAN_ID, COMPONENT_ID, 10, 3))).isInstanceOf(EntityNotFoundException.class).hasMessageContaining("Component not found");
         verify(technicianInventoryRepository, never()).save(any());
     }
 
@@ -185,22 +178,17 @@ class TechnicianInventoryCommandServiceImplTest {
         when(technicianInventoryRepository.findByTechnicianId(TECHNICIAN_ID)).thenReturn(Optional.empty());
 
         // Act + Assert
-        assertThatThrownBy(() -> service.handle(new UpdateComponentStockCommand(TECHNICIAN_ID, COMPONENT_ID, 25, 5)))
-                .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("TechnicianInventory not found");
+        assertThatThrownBy(() -> service.handle(new UpdateComponentStockCommand(TECHNICIAN_ID, COMPONENT_ID, 25, 5))).isInstanceOf(EntityNotFoundException.class).hasMessageContaining("TechnicianInventory not found");
     }
 
     @Test
     @DisplayName("UpdateStock: lanza EntityNotFoundException si el componente no está en el inventario")
     void updateStock_whenComponentNotInInventory_throwsEntityNotFoundException() {
         // Arrange
-        when(technicianInventoryRepository.findByTechnicianId(TECHNICIAN_ID))
-                .thenReturn(Optional.of(new TechnicianInventory(TECHNICIAN_ID)));
+        when(technicianInventoryRepository.findByTechnicianId(TECHNICIAN_ID)).thenReturn(Optional.of(new TechnicianInventory(TECHNICIAN_ID)));
 
         // Act + Assert
-        assertThatThrownBy(() -> service.handle(new UpdateComponentStockCommand(TECHNICIAN_ID, COMPONENT_ID, 25, 5)))
-                .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("Component not found in technician's inventory");
+        assertThatThrownBy(() -> service.handle(new UpdateComponentStockCommand(TECHNICIAN_ID, COMPONENT_ID, 25, 5))).isInstanceOf(EntityNotFoundException.class).hasMessageContaining("Component not found in technician's inventory");
         verify(technicianInventoryRepository, never()).save(any());
     }
 
@@ -212,9 +200,7 @@ class TechnicianInventoryCommandServiceImplTest {
         when(technicianInventoryRepository.findByTechnicianId(TECHNICIAN_ID)).thenReturn(Optional.of(inventory));
 
         // Act + Assert
-        assertThatThrownBy(() -> service.handle(new UpdateComponentStockCommand(TECHNICIAN_ID, COMPONENT_ID, -1, 5)))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Quantity cannot be negative.");
+        assertThatThrownBy(() -> service.handle(new UpdateComponentStockCommand(TECHNICIAN_ID, COMPONENT_ID, -1, 5))).isInstanceOf(IllegalArgumentException.class).hasMessage("Quantity cannot be negative.");
         verify(technicianInventoryRepository, never()).save(any());
     }
 
