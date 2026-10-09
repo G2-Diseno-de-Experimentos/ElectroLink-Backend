@@ -15,7 +15,7 @@ pipeline {
   stages {
     stage('Compile Project') {
       steps {
-        withMaven(maven: 'MAVEN_3_9') {
+        withMaven(maven: 'MAVEN_3_9', options: [junitPublisher(disabled: true)]) {
           sh 'mvn -B clean compile'
         }
       }
@@ -23,7 +23,7 @@ pipeline {
 
     stage('Validate Checkstyle') {
       steps {
-        withMaven(maven: 'MAVEN_3_9') {
+        withMaven(maven: 'MAVEN_3_9', options: [junitPublisher(disabled: true)]) {
           sh 'mvn -B checkstyle:check'
         }
       }
@@ -31,7 +31,7 @@ pipeline {
 
     stage('Validate Unit Tests') {
       steps {
-        withMaven(maven: 'MAVEN_3_9') {
+        withMaven(maven: 'MAVEN_3_9', options: [junitPublisher(disabled: true)]) {
           sh 'mvn -B test -Dtest="$TEST_FILTER"'
         }
       }
@@ -39,7 +39,7 @@ pipeline {
 
     stage('Validate Test Coverage') {
       steps {
-        withMaven(maven: 'MAVEN_3_9') {
+        withMaven(maven: 'MAVEN_3_9', options: [junitPublisher(disabled: true)]) {
           sh 'mvn -B jacoco:report jacoco:check'
         }
       }
@@ -47,7 +47,7 @@ pipeline {
 
     stage('Package Project') {
       steps {
-        withMaven(maven: 'MAVEN_3_9') {
+        withMaven(maven: 'MAVEN_3_9', options: [junitPublisher(disabled: true)]) {
           sh 'mvn -B package -DskipTests'
         }
       }
