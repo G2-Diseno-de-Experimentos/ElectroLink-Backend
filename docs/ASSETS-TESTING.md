@@ -1,6 +1,6 @@
 # Assets — integrante 1
 
-Las unitarias usan Mockito. Karate y Cucumber usan HTTP contra **Spring Boot y PostgreSQL reales**; ya no existe un mock HTTP en Assets. No ejecutar estas suites sobre una base de producción.
+Las unitarias usan Mockito. Karate usa HTTP contra **Spring Boot y PostgreSQL reales**; ya no existe un mock HTTP en Assets. No ejecutar estas suites sobre una base de producción. El apartado 6.1.3 presenta los mismos features Gherkin de Karate y sus evidencias, como Components y Technician Inventory; no hay una suite Cucumber activa.
 
 ## Iniciar un entorno local real y aislado (Windows / PowerShell 7)
 
@@ -49,26 +49,18 @@ No usar `mvn clean` mientras este PostgreSQL esté funcionando: sus archivos se 
 
 Reporte: `target/karate-assets-real/karate-summary.html`. `AssetsKarateTest` solo valida sintaxis con `dryRun`, en otra carpeta; no constituye evidencia de integración.
 
-## Cucumber BDD real (12 casos)
-
-```powershell
-.\mvnw.cmd "-Dtest=AssetsCucumberIT" test
-```
-
-Reporte: `target/cucumber-assets/cucumber.html`. El runner JUnit Jupiter invoca el runtime de Cucumber y comprueba su código de salida. Los pasos Java usan HTTP real, no Mockito ni llamadas a servicios simulados. No se necesita Selenium para esta suite de aceptación del backend.
-
 ## Ejecutar toda la parte 1
 
 ```powershell
-.\mvnw.cmd "-Dtest=PropertyCommandServiceImplTest,PropertyQueryServiceImplTest,ComponentTypeCommandServiceImplTest,ComponentTypeQueryServiceImplTest,AssetsKarateIT,AssetsCucumberIT" test
+.\mvnw.cmd "-Dtest=PropertyCommandServiceImplTest,PropertyQueryServiceImplTest,ComponentTypeCommandServiceImplTest,ComponentTypeQueryServiceImplTest,AssetsKarateIT" test
 ```
 
-Surefire registra 21 métodos JUnit: 19 unitarios y un runner por herramienta. Sus reportes internos muestran 13 escenarios Karate y 12 Cucumber, no 21 escenarios de API.
+Surefire registra 20 métodos JUnit: 19 unitarios y un runner Karate. Su reporte interno muestra 13 escenarios Karate, no 20 escenarios de API.
 
 ## Otro backend de pruebas
 
 ```powershell
-.\mvnw.cmd "-Dtest=AssetsKarateIT,AssetsCucumberIT" "-Dassets.baseUrl=http://localhost:8092" test
+.\mvnw.cmd "-Dtest=AssetsKarateIT" "-Dassets.baseUrl=http://localhost:8092" test
 ```
 
 También puede usarse `ASSETS_BASE_URL`. Para un backend remoto de pruebas hay que autorizar expresamente sus escrituras con `-Dassets.allowRemoteWrites=true`. Las suites registran usuarios únicos, obtienen JWTs reales y crean sus propias propiedades; las propiedades se limpian por API. Los tipos de componentes y usuarios de prueba permanecen en la base aislada porque no existen endpoints para eliminarlos. No reutilizan identificadores fijos ni asumen un número fijo de registros.
