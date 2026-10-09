@@ -114,24 +114,23 @@ class PropertyCommandServiceImplTest {
     }
 
     @Test
-    @DisplayName("Delete: devuelve true y guarda la propiedad cuando existe")
+    @DisplayName("Delete: elimina la propiedad y devuelve true cuando existe")
     void handleDeletePropertyCommand_whenPropertyExists_returnsTrue() {
         // Arrange
         var propertyId = UUID.randomUUID();
         var property = new Property(createPropertyCommand());
         when(propertyRepository.findById(propertyId)).thenReturn(Optional.of(property));
-        when(propertyRepository.save(property)).thenReturn(property);
-
         // Act
         var result = propertyCommandService.handle(new DeletePropertyCommand(propertyId));
 
         // Assert
         assertTrue(result);
-        verify(propertyRepository).save(property);
+        verify(propertyRepository).delete(property);
+        verify(propertyRepository, never()).save(any(Property.class));
     }
 
     @Test
-    @DisplayName("Delete: devuelve false y no guarda cuando la propiedad no existe")
+    @DisplayName("Delete: devuelve false y no elimina cuando la propiedad no existe")
     void handleDeletePropertyCommand_whenPropertyDoesNotExist_returnsFalse() {
         // Arrange
         var propertyId = UUID.randomUUID();
@@ -142,6 +141,7 @@ class PropertyCommandServiceImplTest {
 
         // Assert
         assertFalse(result);
+        verify(propertyRepository, never()).delete(any(Property.class));
         verify(propertyRepository, never()).save(any(Property.class));
     }
 
