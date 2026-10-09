@@ -1,30 +1,44 @@
 @sdp
-Feature: Pruebas integrales de Servicios en SDP
+Feature: Gestión del catálogo de servicios SDP contra el backend real
 
   Background:
-    * def baseUrl = 'https://electrolink-backend-9u9l.onrender.com'
-    * url baseUrl
+    * url karate.properties['sdp.baseUrl']
+    * configure headers = { Authorization: '#("Bearer " + sdpSession.techJwt)' }
 
-    * def authResult = callonce read('classpath:com/hampcoders/electrolink/iam/auth.feature')
-    * def techToken = authResult.techToken
-    * def homeownerToken = authResult.homeownerToken
-
-  Scenario: Consultar catálogo de servicios disponibles como Técnico
-    Given path 'api/v1/services'
-    And header Authorization = 'Bearer ' + techToken
+  Scenario: Registrar un servicio y encontrarlo por id y en el catálogo
+    * def created = karate.fromString(sdpApi.createService())
+    Given path 'api/v1/services', created.id
     When method get
     Then status 200
-    And match response == '#array'
-
-  Scenario: Validar denegación de autorización al registrar un nuevo servicio como Técnico
+    And match response contains { id: '#(created.id)', name: '#(created.payload.name)', basePrice: 150 }
     Given path 'api/v1/services'
-    And header Authorization = 'Bearer ' + techToken
-    And request { name: 'Mantenimiento preventivo', description: 'Revisión técnica de sistemas de carga', price: 150.0 }
-    When method post
-    Then status 401
+    When method get
+    Then status 200
+    And match response contains deep { name: '#(created.payload.name)' }
 
-  Scenario: Validar denegación de autorización al eliminar un servicio inexistente como Homeowner
-    Given path 'api/v1/services/9999'
-    And header Authorization = 'Bearer ' + homeownerToken
+  Scenario: Actualizar un servicio y comprobar que fue eliminado
+    * def created = karate.fromString(sdpApi.createService())
+    * def update = created.payload
+    * set update.name = update.name + '-Updated'
+    * set update.basePrice = 200
+    Given path 'api/v1/services', created.id
+    And request update
+    When method put
+    Then status 200
+    Given path 'api/v1/services', created.id
+    When method get
+    Then status 200
+    And match response contains { id: '#(created.id)', name: '#(update.name)', basePrice: 200 }
+    Given path 'api/v1/services', created.id
     When method delete
+    Then status 200
+    * eval sdpApi.markDeleted('/api/v1/services/' + created.id)
+    Given path 'api/v1/services', created.id
+    When method get
+    Then status 404
+
+  Scenario: Rechazar la consulta del catálogo sin autenticación
+    * configure headers = {}
+    Given path 'api/v1/services'
+    When method get
     Then status 401

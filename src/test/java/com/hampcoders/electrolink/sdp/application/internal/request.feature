@@ -1,30 +1,44 @@
 @sdp
-Feature: Pruebas integrales de Solicitudes de Servicio en SDP
+Feature: Gestión de solicitudes SDP contra el backend real
 
   Background:
-    * def baseUrl = 'https://electrolink-backend-9u9l.onrender.com'
-    * url baseUrl
+    * url karate.properties['sdp.baseUrl']
+    * configure headers = { Authorization: '#("Bearer " + sdpSession.jwt)' }
 
-    * def authResult = callonce read('classpath:com/hampcoders/electrolink/iam/auth.feature')
-    * def homeownerToken = authResult.homeownerToken
-    * def techToken = authResult.techToken
-
-  Scenario: Validar denegación de autorización al crear solicitud como Homeowner
-    Given path 'api/v1/requests'
-    And header Authorization = 'Bearer ' + homeownerToken
-    And request { clientId: 1, serviceId: 1, description: 'Mantenimiento de tablero' }
-    When method post
-    Then status 401
-
-  Scenario: Validar denegación de autorización al consultar solicitudes como Homeowner
-    Given path 'api/v1/requests'
-    And param clientId = 1
-    And header Authorization = 'Bearer ' + homeownerToken
+  Scenario: Registrar una solicitud y encontrarla por id y cliente
+    * def created = karate.fromString(sdpApi.createRequest())
+    Given path 'api/v1/requests', created.id
     When method get
-    Then status 401
+    Then status 200
+    And match response contains { id: '#(created.id)', clientId: '#(sdpSession.clientId)', problemDescription: '#(created.payload.problemDescription)' }
+    Given path 'api/v1/requests/clients', sdpSession.clientId, 'requests'
+    When method get
+    Then status 200
+    And match response contains deep { id: '#(created.id)' }
+    And match each response contains { clientId: '#(sdpSession.clientId)' }
 
-  Scenario: Validar denegación de autorización al eliminar una solicitud como Homeowner
-    Given path 'api/v1/requests/9999'
-    And header Authorization = 'Bearer ' + homeownerToken
+  Scenario: Actualizar y eliminar una solicitud con persistencia comprobada
+    * def created = karate.fromString(sdpApi.createRequest())
+    * def update = created.payload
+    * set update.problemDescription = 'Solicitud actualizada por Karate'
+    Given path 'api/v1/requests', created.id
+    And request update
+    When method put
+    Then status 200
+    Given path 'api/v1/requests', created.id
+    When method get
+    Then status 200
+    And match response.problemDescription == update.problemDescription
+    Given path 'api/v1/requests', created.id
     When method delete
+    Then status 200
+    * eval sdpApi.markDeleted('/api/v1/requests/' + created.id)
+    Given path 'api/v1/requests', created.id
+    When method get
+    Then status 404
+
+  Scenario: Rechazar la consulta de solicitudes sin autenticación
+    * configure headers = {}
+    Given path 'api/v1/requests/clients', sdpSession.clientId, 'requests'
+    When method get
     Then status 401
