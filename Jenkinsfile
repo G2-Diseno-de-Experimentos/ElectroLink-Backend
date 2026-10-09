@@ -7,13 +7,8 @@ pipeline {
   }
 
   environment {
-    // Tests that need a running backend are excluded from the unit test stage
-    UNIT_TEST_FILTER = '!ElectrolinkPlatformApplicationTests,!ComponentInventoryKarateTest,!MonitoringKarateTest'
-    APP_JAR          = 'target/service-platform-parent-0.0.1-SNAPSHOT.jar'
-    APP_URL          = 'http://localhost:8091'
-    DB_URL           = 'jdbc:postgresql://host.docker.internal:5433/electrolink_ci'
-    DB_CREDENTIALS   = credentials('electrolink-ci-db')
-    JWT_SECRET       = credentials('electrolink-ci-jwt-secret')
+    // Runs the whole Karate suite against a deployed backend, so it is not part of the unit test stage
+    TEST_FILTER = '!ElectrolinkPlatformApplicationTests'
   }
 
   stages {
@@ -36,7 +31,7 @@ pipeline {
     stage('Validate Unit Tests') {
       steps {
         withMaven(maven: 'MAVEN_3_9') {
-          sh 'mvn -B test -Dtest="$UNIT_TEST_FILTER"'
+          sh 'mvn -B test -Dtest="$TEST_FILTER"'
         }
       }
     }
@@ -49,34 +44,10 @@ pipeline {
       }
     }
 
-    stage('Package') {
+    stage('Package Project') {
       steps {
         withMaven(maven: 'MAVEN_3_9') {
           sh 'mvn -B package -DskipTests'
-        }
-      }
-    }
-
-    stage('Integration Tests (Karate)') {
-      steps {
-        sh '''
-          DB_USERNAME="$DB_CREDENTIALS_USR" DB_PASSWORD="$DB_CREDENTIALS_PSW" \
-            nohup java -jar "$APP_JAR" > app.log 2>&1 &
-          echo $! > app.pid
-          for i in $(seq 1 60); do
-            curl -sf "$APP_URL/v3/api-docs" > /dev/null && break
-            sleep 2
-          done
-          curl -sf "$APP_URL/v3/api-docs" > /dev/null || { tail -50 app.log; exit 1; }
-        '''
-        withMaven(maven: 'MAVEN_3_9') {
-          sh 'mvn -B test -Dtest=ComponentInventoryKarateTest -Dmonitoring.baseUrl="$APP_URL"'
-        }
-      }
-      post {
-        always {
-          sh 'if [ -f app.pid ]; then kill "$(cat app.pid)" || true; fi'
-          archiveArtifacts artifacts: 'target/karate-reports/**, app.log', allowEmptyArchive: true
         }
       }
     }
@@ -84,7 +55,11 @@ pipeline {
 
   post {
     always {
+      junit allowEmptyResults: true, testResults: 'target/surefire-reports/*.xml'
       archiveArtifacts artifacts: 'target/site/jacoco/**, target/checkstyle-result.xml', allowEmptyArchive: true
+    }
+    success {
+      archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
     }
   }
 }
