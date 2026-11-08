@@ -10,6 +10,8 @@ pipeline {
     // Tests that need a running backend are not part of the unit test stage:
     // the whole Karate suite runner and the *IT integration classes
     TEST_FILTER = '!ElectrolinkPlatformApplicationTests,!*IT'
+    // Same Dockerfile that Render uses to deploy the backend
+    IMAGE_NAME = 'electrolink-backend'
   }
 
   stages {
@@ -50,6 +52,23 @@ pipeline {
         withMaven(maven: 'MAVEN_3_9', options: [junitPublisher(disabled: true)]) {
           sh 'mvn -B package -DskipTests'
         }
+      }
+    }
+
+    stage('Build Docker Image') {
+      steps {
+        sh 'docker build --label org.opencontainers.image.revision="$GIT_COMMIT" -t "$IMAGE_NAME:$BUILD_NUMBER" -t "$IMAGE_NAME:latest" .'
+        sh 'docker image ls "$IMAGE_NAME"'
+      }
+    }
+
+    stage('Approve Delivery') {
+      steps {
+        // The build is aborted if nobody approves within the timeout
+        timeout(time: 30, unit: 'MINUTES') {
+          input message: 'Approve this version as a release candidate?', ok: 'Approve'
+        }
+        sh 'docker tag "$IMAGE_NAME:$BUILD_NUMBER" "$IMAGE_NAME:release-candidate"'
       }
     }
   }
