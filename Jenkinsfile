@@ -6,6 +6,12 @@ pipeline {
     jdk 'JDK_21'
   }
 
+  triggers {
+    // Jenkins runs locally and cannot receive GitHub webhooks,
+    // so it checks the repository for new commits every 2 minutes
+    pollSCM('H/2 * * * *')
+  }
+
   environment {
     // Tests that need a running backend are not part of the unit test stage:
     // the whole Karate suite runner and the *IT integration classes
