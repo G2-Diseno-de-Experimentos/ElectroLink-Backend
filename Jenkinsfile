@@ -6,6 +6,11 @@ pipeline {
     jdk 'JDK_21'
   }
 
+  options {
+    // A build waiting for approval must not let polling start new ones
+    disableConcurrentBuilds()
+  }
+
   triggers {
     // Jenkins runs locally and cannot receive GitHub webhooks,
     // so it checks the repository for new commits every 2 minutes
