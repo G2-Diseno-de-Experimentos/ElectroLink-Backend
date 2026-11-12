@@ -18,14 +18,14 @@ public class OpenApiConfiguration {
         var openApi = new OpenAPI();
         openApi
                 .info(new Info()
-                        .title("Learning Platform API")
-                        .description("Learning Platform application REST API documentation.")
+                        .title("ElectroLink API")
+                        .description("Documentación de la API REST de ElectroLink para la gestión de servicios eléctricos.")
                         .version("v1.0.0")
                         .license(new License().name("Apache 2.0")
                                 .url("https://springdoc.org")))
                 .externalDocs(new ExternalDocumentation()
-                        .description("Learning Platform Documentation")
-                        .url("https://github.com/upc-is-si729/daos-language-reference"));
+                        .description("Documentación de ElectroLink")
+                        .url("https://github.com/G2-Diseno-de-Experimentos/project-document/blob/develop/README.md#527-restful-api-documentation"));
 
         // Add security scheme
         final String securitySchemeName = "bearerAuth";
