@@ -54,3 +54,34 @@ Mientras espera la aprobación, el build ocupa un ejecutor de Jenkins.
 ## Seguridad
 
 Montar el socket le da a Jenkins control total del Docker del equipo. Usar esta configuración solo en el Jenkins local del equipo de desarrollo, no en un servidor compartido.
+
+## SonarQube
+
+La etapa **SonarQube Analysis** envía el análisis a un SonarQube Community que se ejecuta en otro contenedor, en la misma red de Docker que Jenkins.
+
+```bash
+docker network create ci
+docker network connect ci jenkins
+
+docker run -d --name sonarqube --network ci -p 9000:9000 \
+  -e SONAR_SEARCH_JAVAADDITIONALOPTS=-Dnode.store.allow_mmap=false \
+  -v sonarqube_data:/opt/sonarqube/data \
+  -v sonarqube_extensions:/opt/sonarqube/extensions \
+  -v sonarqube_logs:/opt/sonarqube/logs \
+  sonarqube:community
+```
+
+`-Dnode.store.allow_mmap=false` evita configurar `vm.max_map_count` en Docker Desktop. Esta instalación usa la base H2 embebida, válida solo para evaluación local.
+
+Configuración, una sola vez:
+
+1. En `http://localhost:9000`, iniciar sesión con `admin`/`admin`, cambiar la contraseña y crear un token en **My Account → Security** de tipo *Global Analysis Token*.
+2. En Jenkins, crear una credencial *Secret text* con ese token y el ID `sonarqube-token`.
+3. Instalar el plugin **SonarQube Scanner**.
+4. En **Administrar Jenkins → System → SonarQube servers**, marcar *Environment variables* y agregar un servidor con el nombre `SonarQube`, la URL `http://sonarqube:9000` y la credencial `sonarqube-token`.
+
+El escáner se ejecuta con `sonar.qualitygate.wait=true`: espera el resultado del Quality Gate y falla el build si no se cumple. No se usa `waitForQualityGate` porque SonarQube rechaza webhooks hacia direcciones de red internas como `http://jenkins:8080`.
+
+Al recrear el contenedor de Jenkins, agregar `--network ci` al `docker run` para que siga alcanzando a SonarQube.
+
+Panel del proyecto: `http://localhost:9000/dashboard?id=electrolink-backend`.

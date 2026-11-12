@@ -58,6 +58,18 @@ pipeline {
       }
     }
 
+    stage('SonarQube Analysis') {
+      steps {
+        // Server URL and token come from the 'SonarQube' server configured in Jenkins.
+        // sonar.qualitygate.wait makes the scanner fail the build if the Quality Gate fails.
+        withSonarQubeEnv('SonarQube') {
+          withMaven(maven: 'MAVEN_3_9', options: [junitPublisher(disabled: true)]) {
+            sh 'mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:5.8.0.7211:sonar -Dsonar.projectKey=electrolink-backend -Dsonar.projectName=ElectroLink-Backend -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300'
+          }
+        }
+      }
+    }
+
     stage('Package Project') {
       steps {
         withMaven(maven: 'MAVEN_3_9', options: [junitPublisher(disabled: true)]) {
